@@ -1,54 +1,109 @@
 from pyspark.sql import SparkSession
-from pyspark.sql.types import StructType, StructField, IntegerType, StringType
-from pyspark.sql.functions import col,lower
+from pyspark.sql.types import (
+    StructType,
+    StructField,
+    StringType,
+    IntegerType
+)
+from pyspark.sql.functions import col, lower
 
-spark=SparkSession.builder.appName("employee_csv").master("local[2]").getOrCreate()
+# ---------------------------------------------------------
+# Create Spark Session
+# ---------------------------------------------------------
+
+spark = (
+    SparkSession.builder
+    .appName("Employee CSV Analysis")
+    .master("local[2]")
+    .getOrCreate()
+)
+
+# ---------------------------------------------------------
+# Define Schema
+# ---------------------------------------------------------
 
 schema = StructType([
-    StructField("Education",StringType(),False),
-    StructField("JoiningYear",IntegerType(),False),
-    StructField("City",StringType(),False),
-    StructField("PaymentTier",IntegerType(),False),
-    StructField("Age",IntegerType(),False),
-    StructField("Gender",StringType(),False),
-    StructField("EverBenched",StringType(),False),
-    StructField("ExperienceInCurrentDomain",IntegerType(),False),
-    StructField("LeaveOrNot",IntegerType(),False)
+    StructField("Education", StringType(), False),
+    StructField("JoiningYear", IntegerType(), False),
+    StructField("City", StringType(), False),
+    StructField("PaymentTier", IntegerType(), False),
+    StructField("Age", IntegerType(), False),
+    StructField("Gender", StringType(), False),
+    StructField("EverBenched", StringType(), False),
+    StructField("ExperienceInCurrentDomain", IntegerType(), False),
+    StructField("LeaveOrNot", IntegerType(), False)
 ])
-df=spark.read.option("header",True).schema(schema).csv("C:/Users/Prakhar/Downloads/Employee.csv")
+
+# ---------------------------------------------------------
+# Read CSV
+# ---------------------------------------------------------
+
+df = (
+    spark.read
+    .option("header", True)
+    .schema(schema)
+    .csv("C:/Users/Prakhar/Downloads/Employee.csv")
+)
+
+# ---------------------------------------------------------
+# Dataset Overview
+# ---------------------------------------------------------
 
 df.printSchema()
-print("this is schema\n\n\n")
-
-print(df.columns)
-df1=df.select("Education","Age")
-total=df.count()
-print(total," rows in the dataset")
 df.show(10)
-df1.show()
 
+# ---------------------------------------------------------
+# Basic Information
+# ---------------------------------------------------------
 
-print("For total columns")
+total_rows = df.count()
+total_columns = len(df.columns)
+column_names = df.columns
 
-print(len(df.columns))
-print("================")
+# ---------------------------------------------------------
+# Column Selection
+# ---------------------------------------------------------
 
-for column in df.columns:
-    print(column)
+education_age_df = df.select("Education", "Age")
+education_age_df.show()
 
-only_30 = df.filter(col("Age")>30)
-only_30.show()
+# ---------------------------------------------------------
+# Filtering
+# ---------------------------------------------------------
 
+employees_above_30 = df.filter(col("Age") > 30)
 
-exact_25= df.filter(col("Age")==25)
-exact_25.show()
+employees_age_25 = df.filter(col("Age") == 25)
 
-from_bangalore=df.filter(lower(col("City"))=="Bangalore")
-from_bangalore.show()
+employees_bangalore = df.filter(
+    lower(col("City")) == "bangalore"
+)
 
-unique_cities=df.select("City").distinct()
+# ---------------------------------------------------------
+# Distinct Values
+# ---------------------------------------------------------
+
+unique_cities = df.select("City").distinct()
+
+number_of_unique_cities = (
+    df.select("City")
+    .distinct()
+    .count()
+)
+
+# ---------------------------------------------------------
+# Display Results
+# ---------------------------------------------------------
+
+employees_above_30.show()
+
+employees_age_25.show()
+
+employees_bangalore.show()
 
 unique_cities.show()
 
-unique_cities_count=df.select("City").groupBy("City").count()
-unique_cities_count.show()
+print(f"Total Rows            : {total_rows}")
+print(f"Total Columns         : {total_columns}")
+print(f"Unique Cities         : {number_of_unique_cities}")
+print(f"Column Names          : {column_names}")
