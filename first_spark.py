@@ -5,7 +5,7 @@ from pyspark.sql.types import (
     StringType,
     IntegerType
 )
-from pyspark.sql.functions import col, lower
+from pyspark.sql.functions import col, lower, lit, when
 
 # ---------------------------------------------------------
 # Create Spark Session
@@ -42,7 +42,7 @@ df = (
     spark.read
     .option("header", True)
     .schema(schema)
-    .csv("C:/Users/Prakhar/Downloads/Employee.csv")
+    .csv("C:/Users/Prakhar/Desktop/Pysrapk/Employee.csv")
 )
 
 # ---------------------------------------------------------
@@ -107,3 +107,37 @@ print(f"Total Rows            : {total_rows}")
 print(f"Total Columns         : {total_columns}")
 print(f"Unique Cities         : {number_of_unique_cities}")
 print(f"Column Names          : {column_names}")
+
+
+# renaming columns
+
+rename_column = df.withColumn("Experience",col("ExperienceInCurrentDomain"))
+rename_column.printSchema()
+
+
+# renaming multiple columns
+
+renamed_multiple_columns=df.withColumnsRenamed({
+    "PaymentTier":"SalaryTier",
+    "JoiningYear":"Joining_Year",
+    "LeaveOrNot":"Attrition"
+})
+renamed_multiple_columns.printSchema()
+renamed_multiple_columns.show(10)
+
+
+# add column with literal
+
+with_literal = df.withColumn("Country",lit("India"))
+with_literal.show()
+
+# with condition
+
+with_age_category= df.withColumn("AgeCategory",
+                                 when(col("Age")<25,lit("Young")).
+                                 when((col("Age")>25) & (col("Age")<35),lit("Adult")).otherwise(lit("Senior"))
+                                 )
+
+with_age_category.show()
+
+with_age_category.write.mode("overwrite").csv("employee.parquet")
