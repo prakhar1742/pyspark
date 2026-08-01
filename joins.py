@@ -1,8 +1,7 @@
 from pyspark.sql import SparkSession
 from pyspark.sql.types import StructType,StringType,IntegerType,StructField, DateType
-from pyspark.sql.functions import col, lower, row_number, desc,concat, current_date, datediff, year
+from pyspark.sql.functions import col, lower, row_number, desc,concat, current_date, datediff, year, floor
 from pyspark.sql.window import Window
-import math
 
 spark = SparkSession.builder.appName("joins").master("local[2]").getOrCreate()
 
@@ -103,7 +102,10 @@ emp_dept_sal.show()
 
 emp_dept_sal=emp_dept_sal.withColumn("age",datediff(current_date(),col("dob")))
 
-emp_dept_sal=emp_dept_sal.withColumn("years_worked",math.floor(datediff(col("to_date"),col("from_date")))/365)
+emp_dept_sal = emp_dept_sal.withColumn(
+    "years_worked",
+    floor(datediff(col("to_date"), col("from_date")) / 365)
+)
 
 emp_dept_sal=emp_dept_sal.withColumn("hire_year",year(col("from_date")))
 
